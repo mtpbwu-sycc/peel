@@ -1,1 +1,1 @@
-"NSAppleEventsUsageDescription" = "Peel 需要读取你在访达中选中的文件，才能在轮盘里显示对应的操作。";
+"NSAppleEventsUsageDescription" = "Peel 需要读取你在访达中选中的文件，才能在轮盘里显示对应的操作；如果你在设置里打开了「用 Microsoft Word 导出」，还会让 Word 导出 PDF。";

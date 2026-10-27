@@ -63,7 +63,7 @@ The wheel only shows what makes sense for that file type — a Word document get
 
 | | |
 |---|---|
-| **Documents** | Word / PowerPoint / Excel → PDF (via LibreOffice, fully offline), Pages / Keynote / Numbers export, docx ⇄ txt ⇄ html |
+| **Documents** | Word / PowerPoint / Excel → PDF (via LibreOffice, fully offline — or, optionally, via Microsoft Word for an exact match: Settings › Word → PDF), Pages / Keynote / Numbers export, docx ⇄ txt ⇄ html |
 | **PDF** | Compress, compress to a target size, PDF → Word / images, merge, split, rotate, redact (content really removed), metadata, **tiled watermark** (optionally flattened so it can't be removed), **signature** (hand-drawn / typed / saved, optional date) |
 | **Images** | Convert (JPG / PNG / HEIC / WebP / PDF), compress, **compress to a target size** (≤ 2 MB / 1 MB / 500 KB / custom), crop, resize, add background, strip location / metadata, **ID photo** (background swap, face-aware framing, common Chinese & visa sizes, optional print sheet), cutout to transparent PNG |
 | **Audio & video** | Convert, compress (with size estimate and progress), extract audio, video → GIF |

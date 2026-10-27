@@ -24,7 +24,7 @@ final class SettingsWindow: NSObject, NSWindowDelegate {
         window.title = t("Peel 设置", "Peel Settings")
         window.isReleasedWhenClosed = false
         window.delegate = self
-        let size = NSSize(width: 480, height: 640)
+        let size = NSSize(width: 480, height: 760)
         window.contentView = NSHostingView(rootView: SettingsView().frame(width: size.width, height: size.height))
         window.setContentSize(size)
         window.center()
@@ -51,6 +51,7 @@ private struct SettingsView: View {
     @State private var snapKey = Shortcut.presets.firstIndex(of: Settings.snapShortcut) ?? 0
     @State private var wheelKey = Shortcut.wheelPresets.firstIndex(of: Settings.wheelShortcut) ?? 0
     @State private var mirror = Settings.useChinaMirror
+    @State private var wordPDF = Settings.useWordForPDF
 
     var body: some View {
         Form {
@@ -85,8 +86,26 @@ private struct SettingsView: View {
                 Text(t("快捷键", "Shortcuts"))
             } footer: {
                 Text(t("打开轮盘：先在访达里选中文件再按。也可以右键文件 › 服务 › 用 Peel 处理。",
-                       "Open wheel: select files in Finder first. Or right-click › Services › 用 Peel 处理."))
+                       "Open wheel: select files in Finder first. Or right-click › Services › Process with Peel."))
                     .font(.callout).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            Section {
+                Toggle(t("用 Microsoft Word 导出", "Export with Microsoft Word"), isOn: $wordPDF)
+                    .onChange(of: wordPDF) { Settings.useWordForPDF = $0 }
+                    .disabled(!WordExporter.isInstalled)
+            } header: {
+                Text(t("Word 转 PDF", "Word → PDF"))
+            } footer: {
+                Text(WordExporter.isInstalled
+                     ? t("排版和在 Word 里「导出 › PDF」一致，还原度最高；但每份要 10 秒左右，而且 Word 可能借助微软的在线服务生成 PDF（文档会上传）。关闭时用 LibreOffice：快、完全离线。",
+                         "Same layout as File › Export › PDF in Word. Slower (about 10 s per file), and Word may use Microsoft's online service to make the PDF (the document is uploaded). When off, LibreOffice is used: fast and fully offline.")
+                     : t("需要安装 Microsoft Word。现在用 LibreOffice：快、完全离线。",
+                         "Requires Microsoft Word. Currently using LibreOffice: fast and fully offline."))
+                    .font(.callout).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Section(t("通用", "General")) {

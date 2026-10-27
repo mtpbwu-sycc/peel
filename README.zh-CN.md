@@ -60,7 +60,7 @@ Peel 住在屏幕右上角的菜单栏里，没有 Dock 图标，也没有主窗
 
 | | |
 |---|---|
-| **文档** | Word / PPT / Excel 转 PDF（用 LibreOffice，完全离线）、Pages / Keynote / Numbers 导出、docx ⇄ txt ⇄ html |
+| **文档** | Word / PPT / Excel 转 PDF（用 LibreOffice，完全离线；也可以在设置 › Word 转 PDF 里改用 Microsoft Word 导出，排版和 Word 完全一致）、Pages / Keynote / Numbers 导出、docx ⇄ txt ⇄ html |
 | **PDF** | 压缩、压缩到指定大小、转 Word / 图片、合并、拆分、旋转、涂黑（真正移除内容）、元数据、**平铺水印**（可防移除）、**签名**（手写 / 打字 / 已保存，可加日期） |
 | **图片** | 转换（JPG / PNG / HEIC / WebP / PDF）、压缩、**压缩到指定大小**（≤ 2 MB / 1 MB / 500 KB / 自定义）、裁剪、改尺寸、加背景、去掉位置 / 元数据、**证件照**（换底色、按人脸构图、国内及签证尺寸、可选 6 寸排版）、抠图（透明 PNG） |
 | **音频、视频** | 转换、压缩（预估大小、显示进度）、提取音频、视频转 GIF |

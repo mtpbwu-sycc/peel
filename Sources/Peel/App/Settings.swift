@@ -59,6 +59,12 @@ enum Settings {
         set { d.set(Shortcut.wheelPresets.firstIndex(of: newValue) ?? 0, forKey: "wheelShortcut") }
     }
 
+    /// Word 转 PDF 时用 Microsoft Word 导出（还原度最高，但慢，且可能用到微软在线服务）；默认用 LibreOffice
+    static var useWordForPDF: Bool {
+        get { d.bool(forKey: "useWordForPDF") }
+        set { d.set(newValue, forKey: "useWordForPDF") }
+    }
+
     /// 上次保存截图的文件夹
     static var lastSnapFolder: URL? {
         get { d.url(forKey: "lastSnapFolder") }

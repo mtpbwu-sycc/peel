@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.2 — 2026-10-27
+- **Word → PDF with Microsoft Word** (optional, Settings › Word → PDF): same layout as exporting from Word yourself. Off by default — it's slower (about 15–25 s per file) and Word may use Microsoft's online service to make the PDF. Falls back to LibreOffice if Word fails; Word is closed again afterwards if Peel had to open it.
+- Settings notes are left-aligned; the English Shortcuts note says "Process with Peel".
+
 ## 0.9.1 — 2026-10-19
 - New illustrated demo animation (English and Chinese) in the Getting Started guide and the README; the app download is smaller.
 - English "Created" message uses English quotes (was showing Chinese brackets).

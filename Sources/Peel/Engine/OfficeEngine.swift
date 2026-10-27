@@ -10,6 +10,9 @@ enum OfficeEngine {
 
     static func needsLibreOffice(ext: String, target: String) -> Bool {
         if textutilSources.contains(ext) && textutilTargets.contains(target) { return false }
+        if target == "pdf" && Settings.useWordForPDF && WordExporter.isInstalled && WordExporter.sources.contains(ext) {
+            return false
+        }
         if let app = iWork[ext], appInstalled(app) { return false }
         return true
     }
@@ -27,6 +30,19 @@ enum OfficeEngine {
         }
         if textutilSources.contains(ext) && textutilTargets.contains(target) {
             return [try textutil(src, to: target)]
+        }
+        // 设置里选了用 Word 导出：失败时（比如 Word 卡住）退回 LibreOffice
+        if WordExporter.shouldUse(src, target: target) {
+            do {
+                return [try WordExporter.exportPDF(src)]
+            } catch let e as PeelError {
+                throw e
+            } catch {
+                Log.write("word export failed, falling back to LibreOffice: \(error)")
+                guard Tool.libreoffice.isInstalled else {
+                    throw PeelError("Word 导出失败", "Word export failed")
+                }
+            }
         }
         // 演示文稿 → 每页一张图片：先转 PDF，再逐页渲染
         if FileKind.of(src) == .presentation && target == "jpg" {
