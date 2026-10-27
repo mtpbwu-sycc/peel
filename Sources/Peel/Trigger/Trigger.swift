@@ -20,10 +20,19 @@ enum Trigger {
 
         // 辅助功能读不出来（比如还没授权）：向 Finder 要选中的文件来填轮盘。
         // 轮盘自己跟踪鼠标，不依赖 Finder 的拖动，所以这时发请求也没关系
-        if file == nil {
-            FinderBridge.fetchSelection(timeout: 1.5) { result in
-                Log.write("selection fallback: \(result)")
-                if case .success(let urls) = result, !urls.isEmpty { wheel.fillIfEmpty(urls) }
+        if file == nil { fillFromSelection(attempt: 1) }
+    }
+
+    /// 鼠标按住一动不动时，Finder 还在处理这次按下，可能迟迟不回应；
+    /// 超时后只要轮盘还开着、还是空的，就再问一次（最多 4 次）
+    private static func fillFromSelection(attempt: Int) {
+        let wheel = WheelController.shared
+        FinderBridge.fetchSelection(timeout: 2) { result in
+            Log.write("selection fallback #\(attempt): \(result)")
+            if case .success(let urls) = result, !urls.isEmpty {
+                wheel.fillIfEmpty(urls)
+            } else if attempt < 4, wheel.isVisible, wheel.files.isEmpty {
+                fillFromSelection(attempt: attempt + 1)
             }
         }
     }

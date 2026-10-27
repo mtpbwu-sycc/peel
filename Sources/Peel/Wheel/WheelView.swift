@@ -264,7 +264,12 @@ struct CenterView: View {
                         radius: hovered ? 12 : 7, y: hovered ? 0 : 3)
 
             VStack(spacing: 3) {
-                if isRoot {
+                if isRoot && controller.files.isEmpty {
+                    // 还在向 Finder 读取选中的文件
+                    ProgressView().controlSize(.small)
+                    Text(t("正在读取文件…", "Reading file…"))
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                } else if isRoot {
                     rootIcon
                     Text(node.title.text)
                         .font(.system(size: 10, weight: .semibold, design: .rounded))

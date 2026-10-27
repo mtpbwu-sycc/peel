@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.9.3 — 2026-10-27
+- Fixed: holding a file perfectly still could leave the wheel empty (just a white circle) when Accessibility isn't granted. Peel now keeps asking Finder for the selection while the wheel is open, and shows "Reading file…" in the center meanwhile.
+
 ## 0.9.2 — 2026-10-27
 - **Word → PDF with Microsoft Word** (optional, Settings › Word → PDF): same layout as exporting from Word yourself. Off by default — it's slower (about 15–25 s per file) and Word may use Microsoft's online service to make the PDF. Falls back to LibreOffice if Word fails; Word is closed again afterwards if Peel had to open it.
 - Settings notes are left-aligned; the English Shortcuts note says "Process with Peel".
