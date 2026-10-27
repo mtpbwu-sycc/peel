@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/cuishuyuan04-art/peel/releases/latest/download/Peel.dmg"><img src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD_macOS_%E7%89%88-Peel.dmg-ff8a2a?style=for-the-badge&logo=apple&logoColor=white" alt="下载 Peel"></a>
+  <a href="https://github.com/mtpbwu-sycc/peel/releases/latest/download/Peel.dmg"><img src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD_macOS_%E7%89%88-Peel.dmg-ff8a2a?style=for-the-badge&logo=apple&logoColor=white" alt="下载 Peel"></a>
   <br>
-  <img src="https://img.shields.io/github/v/release/cuishuyuan04-art/peel?label=%E6%9C%80%E6%96%B0%E7%89%88&color=ff8a2a" alt="最新版本">
+  <img src="https://img.shields.io/github/v/release/mtpbwu-sycc/peel?label=%E6%9C%80%E6%96%B0%E7%89%88&color=ff8a2a" alt="最新版本">
   <img src="https://img.shields.io/badge/macOS-13%2B-555" alt="macOS 13+">
   <img src="https://img.shields.io/badge/Apple_%E8%8A%AF%E7%89%87_%26_Intel-555" alt="Apple 芯片和 Intel">
 </p>
@@ -34,7 +34,7 @@
 
 ## 下载安装
 
-1. **[点这里下载 Peel.dmg](https://github.com/cuishuyuan04-art/peel/releases/latest/download/Peel.dmg)**（永远是最新版；历史版本在 [Releases](../../releases)）。
+1. **[点这里下载 Peel.dmg](https://github.com/mtpbwu-sycc/peel/releases/latest/download/Peel.dmg)**（永远是最新版；历史版本在 [Releases](../../releases)）。
 2. 打开下载的 DMG，把 **Peel** 拖进 **「应用程序」** 文件夹。
 3. 打开 Peel。第一次会被系统拦下（因为没有经过苹果公证）：
    打开 **「系统设置 › 隐私与安全性」**，往下找到 Peel 的提示，点 **「仍要打开」**。

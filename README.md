@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/cuishuyuan04-art/peel/releases/latest/download/Peel.dmg"><img src="https://img.shields.io/badge/Download_for_macOS-Peel.dmg-ff8a2a?style=for-the-badge&logo=apple&logoColor=white" alt="Download Peel for macOS"></a>
+  <a href="https://github.com/mtpbwu-sycc/peel/releases/latest/download/Peel.dmg"><img src="https://img.shields.io/badge/Download_for_macOS-Peel.dmg-ff8a2a?style=for-the-badge&logo=apple&logoColor=white" alt="Download Peel for macOS"></a>
   <br>
-  <img src="https://img.shields.io/github/v/release/cuishuyuan04-art/peel?label=latest&color=ff8a2a" alt="Latest version">
+  <img src="https://img.shields.io/github/v/release/mtpbwu-sycc/peel?label=latest&color=ff8a2a" alt="Latest version">
   <img src="https://img.shields.io/badge/macOS-13%2B-555" alt="macOS 13+">
   <img src="https://img.shields.io/badge/Apple_silicon_%26_Intel-555" alt="Apple silicon and Intel">
 </p>
@@ -36,7 +36,7 @@
 
 ## Download & install
 
-1. **[Download Peel.dmg](https://github.com/cuishuyuan04-art/peel/releases/latest/download/Peel.dmg)** (always the latest version; older ones are under [Releases](../../releases)).
+1. **[Download Peel.dmg](https://github.com/mtpbwu-sycc/peel/releases/latest/download/Peel.dmg)** (always the latest version; older ones are under [Releases](../../releases)).
 2. Open the DMG and drag **Peel** into **Applications**.
 3. Open Peel. The first time, macOS blocks it because it isn't notarized by Apple:
    go to **System Settings › Privacy & Security**, scroll down and click **Open Anyway** next to the Peel message.
