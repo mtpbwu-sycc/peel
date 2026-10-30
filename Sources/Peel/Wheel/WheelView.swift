@@ -230,9 +230,34 @@ struct SectorView: View {
                                                 startPoint: .top, endPoint: .center),
                                  style: StrokeStyle(lineWidth: inset * 2, lineJoin: .round))
                 }
+                if style.grain > 0 {
+                    shape.fill(ImagePaint(image: Image(nsImage: Grain.image), scale: 0.5), style: even)
+                        .overlay(shape.stroke(ImagePaint(image: Image(nsImage: Grain.image), scale: 0.5),
+                                              style: StrokeStyle(lineWidth: inset * 2, lineJoin: .round)))
+                        .compositingGroup()
+                        .opacity(style.grain)
+                }
                 if style.glassSheen {
-                    shape.fill(LinearGradient(colors: [Color.white.opacity(0.3), Color.white.opacity(0)],
-                                              startPoint: .top, endPoint: .center), style: even)
+                    // 斜向的一道反光
+                    shape.fill(LinearGradient(stops: [.init(color: .white.opacity(0.0), location: 0.25),
+                                                      .init(color: .white.opacity(0.38), location: 0.42),
+                                                      .init(color: .white.opacity(0.0), location: 0.6)],
+                                              startPoint: UnitPoint(x: 0, y: 0), endPoint: UnitPoint(x: 1, y: 1)),
+                               style: even)
+                        .opacity(hovered ? 0.5 : 1)
+                }
+                if style.rim {
+                    // 外沿细亮边：先画一圈稍粗的渐变描边，再把扇区本身（含圆角）挖掉，只留外面约 1.2 点
+                    ZStack {
+                        shape.stroke(LinearGradient(colors: [Color.white.opacity(0.95), Color.white.opacity(0.12),
+                                                             Color.white.opacity(0.55)],
+                                                    startPoint: .topLeading, endPoint: .bottomTrailing),
+                                     style: StrokeStyle(lineWidth: inset * 2 + 2.4, lineJoin: .round))
+                        shape.fill(Color.black, style: even)
+                            .overlay(shape.stroke(Color.black, style: StrokeStyle(lineWidth: inset * 2, lineJoin: .round)))
+                            .blendMode(.destinationOut)
+                    }
+                    .compositingGroup()
                 }
             }
             .shadow(color: hovered ? Color.orange.opacity(style.hoverGlow > 0 ? 0.55 : 0) : style.sectorShadow,

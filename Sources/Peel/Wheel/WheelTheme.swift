@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// 轮盘外观。只改样子，扇区、交互、动画都一样
@@ -37,13 +38,15 @@ enum WheelTheme: String, CaseIterable, Identifiable {
                     colors: [Color.white.opacity(0.97), Color(red: 1, green: 0.95, blue: 0.9).opacity(0.92)],
                     startPoint: .top, endPoint: .bottom)))
         case .simple:
-            // 像 macOS 自己的菜单 / 控制中心：系统毛玻璃底，扇区是淡淡的半透明白，只有悬停的那一块变成橙色
+            // 磨砂玻璃：系统菜单材质的底，扇区是更不透明的雾白面板，带一层细颗粒；悬停那一块变成橙色
             return WheelStyle(
                 base: .plainGlass,
-                sectorFill: AnyShapeStyle(Color.white),
+                sectorFill: AnyShapeStyle(LinearGradient(colors: [Color.white, Color.white.opacity(0.82)],
+                                                         startPoint: .top, endPoint: .bottom)),
                 hotFill: AnyShapeStyle(Color(red: 1.0, green: 0.5, blue: 0.12)),
                 ink: dark ? Color.white.opacity(0.9) : Color.black.opacity(0.8),
-                sectorOpacity: dark ? 0.09 : 0.55,
+                sectorOpacity: dark ? 0.14 : 0.7,
+                grain: dark ? 0.06 : 0.09,
                 hoverGlow: 0, pop: 0,
                 centerFill: AnyShapeStyle(dark ? Color.white.opacity(0.12) : Color.white.opacity(0.75)),
                 centerOutline: .clear,
@@ -63,17 +66,17 @@ enum WheelTheme: String, CaseIterable, Identifiable {
                 centerOutline: line,
                 ringTrack: line.opacity(0.25))
         case .glass:
-            // 通透：扇区几乎透明，只有细亮边；高亮是一团半透明的橙光
+            // 透明玻璃：扇区几乎全透明，靠一圈左上亮、右下暗的细亮边和一道斜向反光体现质感；悬停是半透明的橙色玻璃
             return WheelStyle(
                 base: .clearGlass,
                 sectorFill: AnyShapeStyle(Color.white),
                 hotFill: AnyShapeStyle(Color(red: 1.0, green: 0.5, blue: 0.15)),
-                ink: dark ? inkLight : Color(white: 0.12),
-                sectorOpacity: dark ? 0.1 : 0.34, hotOpacity: 0.78,
-                glassSheen: true,
-                hoverGlow: 18,
-                centerFill: AnyShapeStyle(dark ? Color.white.opacity(0.1) : Color.white.opacity(0.45)),
-                centerOutline: Color.white.opacity(0.8))
+                ink: dark ? inkLight : Color(white: 0.1),
+                sectorOpacity: dark ? 0.05 : 0.12, hotOpacity: 0.62,
+                glassSheen: true, rim: true,
+                hoverGlow: 16,
+                centerFill: AnyShapeStyle(dark ? Color.white.opacity(0.08) : Color.white.opacity(0.22)),
+                centerOutline: Color.white.opacity(0.85))
         }
     }
 }
@@ -100,8 +103,12 @@ struct WheelStyle {
     var bevel = false
     /// 扇区的细描边（简洁、玻璃）
     var hairline: Color? = nil
-    /// 扇区上半部的一层反光（玻璃）
+    /// 扇区上的一道斜向反光（玻璃）
     var glassSheen = false
+    /// 扇区外沿一圈细亮边，左上亮、右下暗（玻璃）
+    var rim = false
+    /// 磨砂颗粒的强度（简洁）
+    var grain: Double = 0
     /// 扇区粗描边（卡通）
     var outline: Color? = nil
     var outlineWidth: CGFloat = 0
@@ -139,13 +146,15 @@ struct WheelBase: View {
             case .clearGlass:
                 ZStack {
                     material
-                    Circle().fill(LinearGradient(colors: [Color.white.opacity(0.35), Color.white.opacity(0.02)],
-                                                 startPoint: .top, endPoint: .bottom))
-                    Circle().strokeBorder(LinearGradient(colors: [Color.white, Color.white.opacity(0.35)],
+                    Circle().fill(LinearGradient(colors: [Color.white.opacity(0.22), Color.white.opacity(0)],
+                                                 startPoint: .topLeading, endPoint: .center))
+                    Circle().strokeBorder(Color.black.opacity(0.1), lineWidth: 0.5)
+                    Circle().strokeBorder(LinearGradient(colors: [Color.white, Color.white.opacity(0.1), Color.white.opacity(0.6)],
                                                          startPoint: .topLeading, endPoint: .bottomTrailing),
-                                          lineWidth: 1.8)
+                                          lineWidth: 1.5)
+                        .padding(0.5)
                 }
-                .shadow(color: .black.opacity(0.18), radius: 18, y: 6)
+                .shadow(color: .black.opacity(0.16), radius: 18, y: 6)
             case .flat(let color):
                 Circle().fill(color).shadow(color: .black.opacity(0.22), radius: 16, y: 6)
             case .cartoon(let line, let paper):
@@ -166,4 +175,26 @@ struct WheelBase: View {
             BackdropBlur().clipShape(Circle())
         }
     }
+}
+
+/// 磨砂颗粒：一张随机灰点的小图，平铺在扇区上
+enum Grain {
+    static let image: NSImage = {
+        let n = 96
+        // RGBA 预乘：一半像素是半透明白点，一半是半透明黑点
+        var bytes = [UInt8](repeating: 0, count: n * n * 4)
+        var g = SystemRandomNumberGenerator()
+        for i in 0..<(n * n) {
+            let v = Int.random(in: 0...255, using: &g)
+            let a = UInt8(abs(v - 128) * 2 > 255 ? 255 : abs(v - 128) * 2)
+            let c: UInt8 = v > 128 ? a : 0
+            bytes[i * 4] = c; bytes[i * 4 + 1] = c; bytes[i * 4 + 2] = c; bytes[i * 4 + 3] = a
+        }
+        let provider = CGDataProvider(data: Data(bytes) as CFData)!
+        let cg = CGImage(width: n, height: n, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: n * 4,
+                         space: CGColorSpaceCreateDeviceRGB(),
+                         bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
+                         provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)!
+        return NSImage(cgImage: cg, size: NSSize(width: n, height: n))
+    }()
 }

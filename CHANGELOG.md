@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.1 — 2026-10-30
+- **Simple** style is now frosted glass: hazy white panels with a fine grain.
+- **Glass** style is clearer: nearly transparent sectors with a thin bright rim (light from the top left) and a diagonal reflection; hover is a translucent orange.
+
 ## 0.10.0 — 2026-10-30
 - **Wheel styles** (Settings › Wheel style): Classic, Simple (macOS menu look), Cartoon and Glass, with live previews; optional dark wheel in Dark Mode.
 - Classic loses the white bevel band; Glass sectors are evenly translucent.
