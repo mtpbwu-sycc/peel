@@ -65,6 +65,27 @@ enum Settings {
         set { d.set(newValue, forKey: "useWordForPDF") }
     }
 
+    /// 启动时和每天检查一次 GitHub 上的新版本
+    static var checkForUpdates: Bool {
+        get { d.object(forKey: "checkForUpdates") as? Bool ?? true }
+        set { d.set(newValue, forKey: "checkForUpdates") }
+    }
+
+    /// 轮盘外观
+    /// 开发渲染时临时指定外观，不写入偏好
+    static var wheelThemeOverride: WheelTheme?
+
+    static var wheelTheme: WheelTheme {
+        get { wheelThemeOverride ?? WheelTheme(rawValue: d.string(forKey: "wheelTheme") ?? "") ?? .classic }
+        set { d.set(newValue.rawValue, forKey: "wheelTheme") }
+    }
+
+    /// 系统深色模式时轮盘也用深色
+    static var wheelFollowsDark: Bool {
+        get { d.object(forKey: "wheelFollowsDark") as? Bool ?? true }
+        set { d.set(newValue, forKey: "wheelFollowsDark") }
+    }
+
     /// 上次保存截图的文件夹
     static var lastSnapFolder: URL? {
         get { d.url(forKey: "lastSnapFolder") }

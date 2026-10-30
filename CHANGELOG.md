@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.0 — 2026-10-30
+- **Wheel styles** (Settings › Wheel style): Classic, Simple (macOS menu look), Cartoon and Glass, with live previews; optional dark wheel in Dark Mode.
+- Classic loses the white bevel band; Glass sectors are evenly translucent.
+- **Open at login** (on by default) and **update check** (daily, shows "Peel x.y is available" in the menu; can be turned off).
+- Settings opens scrolled to the top.
+
 ## 0.9.3 — 2026-10-27
 - Fixed: holding a file perfectly still could leave the wheel empty (just a white circle) when Accessibility isn't granted. Peel now keeps asking Finder for the selection while the wheel is open, and shows "Reading file…" in the center meanwhile.
 

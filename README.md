@@ -68,7 +68,7 @@ The wheel only shows what makes sense for that file type — a Word document get
 | **Images** | Convert (JPG / PNG / HEIC / WebP / PDF), compress, **compress to a target size** (≤ 2 MB / 1 MB / 500 KB / custom), crop, resize, add background, strip location / metadata, **ID photo** (background swap, face-aware framing, common Chinese & visa sizes, optional print sheet), cutout to transparent PNG |
 | **Audio & video** | Convert, compress (with size estimate and progress), extract audio, video → GIF |
 | **Screenshots** | **⌥⇧S** to select an area → Save (pick a folder) / Copy / Copy Text (on-device OCR) / Pin to screen. Never auto-saved: it only goes to the clipboard unless you save it or drag the thumbnail out |
-| **Other** | Zip, Chinese / English UI (follows your system language; switch anytime under menu-bar icon › 语言 / Language), settings window (⌘,) for timings and shortcuts |
+| **Other** | Four wheel styles (Classic, Simple, Cartoon, Glass) with a dark variant, opens at login, update check, Zip, Chinese / English UI (follows your system language; switch anytime under menu-bar icon › 语言 / Language), settings window (⌘,) for timings and shortcuts |
 
 ## Screenshots
 
@@ -112,7 +112,7 @@ Everything else (images, PDF editing, OCR, background removal, face detection) u
 ## Privacy
 
 Peel works entirely on your Mac. Files are never uploaded; OCR, cutouts and ID photos use Apple's on-device Vision framework.
-There is no analytics or telemetry. The only network access is when **you** choose to install components (Homebrew / pip downloads).
+There is no analytics or telemetry. Network access is limited to installing components when **you** choose to (Homebrew / pip), and a daily check of the latest version number on GitHub (turn it off in Settings).
 Logs stay local in `~/Library/Logs/Peel.log`.
 
 ## Build from source

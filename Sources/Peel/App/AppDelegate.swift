@@ -45,6 +45,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         HotKey.shared.register(.snap, Settings.snapShortcut) { SnapController.shared.start() }
         HotKey.shared.register(.wheel, Settings.wheelShortcut) { WheelEntry.openForFinderSelection() }
 
+        LoginItem.applyDefaultOnce()   // 第一次运行：默认开机自动启动
+        UpdateChecker.start()
+
         // 右键「服务 › 用 Peel 处理」
         NSApp.servicesProvider = ServiceProvider()
         NSUpdateDynamicServices()
@@ -98,6 +101,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if NSEvent.modifierFlags.contains(.option) {
             menu.addItem(item("🍊 \(Self.credit)") {
                 HUD.shared.show(Self.credit, symbol: "heart.fill", duration: 4)
+            })
+        }
+        if let latest = UpdateChecker.available {
+            menu.addItem(item(t("⬆︎ 有新版本 \(latest)，点击下载…", "⬆︎ Peel \(latest) is available — Download…")) {
+                NSWorkspace.shared.open(UpdateChecker.releasesPage)
             })
         }
         if let job = Jobs.label {

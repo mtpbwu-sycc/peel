@@ -16,6 +16,8 @@ final class SettingsWindow: NSObject, NSWindowDelegate {
         current = holder
         NSApp.activate(ignoringOtherApps: true)
         holder.window.makeKeyAndOrderFront(nil)
+        // 不要默认聚焦到某个按钮（会把列表滚到底部）
+        holder.window.makeFirstResponder(nil)
     }
 
     private override init() {
@@ -24,7 +26,7 @@ final class SettingsWindow: NSObject, NSWindowDelegate {
         window.title = t("Peel 设置", "Peel Settings")
         window.isReleasedWhenClosed = false
         window.delegate = self
-        let size = NSSize(width: 480, height: 760)
+        let size = NSSize(width: 500, height: 700)
         window.contentView = NSHostingView(rootView: SettingsView().frame(width: size.width, height: size.height))
         window.setContentSize(size)
         window.center()
@@ -52,9 +54,29 @@ private struct SettingsView: View {
     @State private var wheelKey = Shortcut.wheelPresets.firstIndex(of: Settings.wheelShortcut) ?? 0
     @State private var mirror = Settings.useChinaMirror
     @State private var wordPDF = Settings.useWordForPDF
+    @State private var theme = Settings.wheelTheme
+    @State private var followsDark = Settings.wheelFollowsDark
+    @State private var loginItem = LoginItem.isEnabled
+    @State private var updates = Settings.checkForUpdates
 
     var body: some View {
+        ScrollViewReader { proxy in
         Form {
+            Section(t("轮盘外观", "Wheel style")) {
+                HStack(spacing: 10) {
+                    ForEach(WheelTheme.allCases) { th in
+                        ThemeCard(theme: th, selected: theme == th) {
+                            theme = th
+                            Settings.wheelTheme = th
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                Toggle(t("系统深色模式时用深色轮盘", "Use a dark wheel in Dark Mode"), isOn: $followsDark)
+                    .onChange(of: followsDark) { Settings.wheelFollowsDark = $0 }
+            }
+            .id("top")
+
             Section(t("长按", "Long-press")) {
                 Toggle(t("在访达里长按文件弹出轮盘", "Hold a file in Finder to open the wheel"), isOn: $longPress)
                     .onChange(of: longPress) { Settings.longPressEnabled = $0 }
@@ -109,6 +131,22 @@ private struct SettingsView: View {
             }
 
             Section(t("通用", "General")) {
+                Toggle(t("开机时自动启动 Peel", "Open Peel at login"), isOn: $loginItem)
+                    .onChange(of: loginItem) { on in
+                        LoginItem.set(on)
+                        loginItem = LoginItem.isEnabled
+                    }
+                Toggle(t("自动检查更新", "Check for updates automatically"), isOn: $updates)
+                    .onChange(of: updates) { on in
+                        Settings.checkForUpdates = on
+                        if on { UpdateChecker.start() }
+                    }
+                HStack {
+                    Text(t("当前版本 ", "Version ") + (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button(t("现在检查更新", "Check Now")) { UpdateChecker.check(userInitiated: true) }
+                }
                 Toggle(t("安装组件时使用国内镜像", "Use China mirrors when installing components"), isOn: $mirror)
                     .onChange(of: mirror) { Settings.useChinaMirror = $0 }
             }
@@ -128,6 +166,13 @@ private struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+        // 打开时停在最上面（否则会自动滚到某个按钮那里）
+        .onAppear {
+            for delay in [0.0, 0.15, 0.4] {
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) { proxy.scrollTo("top", anchor: .top) }
+            }
+        }
+        }
         .id(lang)
         .onReceive(NotificationCenter.default.publisher(for: Settings.langChanged)) { _ in lang = Settings.lang }
     }
@@ -146,5 +191,60 @@ private struct SettingsView: View {
             Slider(value: value, in: range, step: 0.1).labelsHidden()
         }
         .onChange(of: value.wrappedValue) { save($0) }
+    }
+}
+
+/// 外观选择卡片：用离屏渲染画一个小轮盘（照片的第一层，“编辑”扇区高亮）
+private struct ThemeCard: View {
+    let theme: WheelTheme
+    let selected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Group {
+                    if let img = Self.thumbnail(theme) {
+                        Image(nsImage: img).resizable()
+                    } else {
+                        Color.secondary.opacity(0.1)
+                    }
+                }
+                .frame(width: 92, height: 92)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(selected ? PeelColors.ring : Color.secondary.opacity(0.2), lineWidth: selected ? 2.5 : 1))
+                Text(theme.title.text)
+                    .font(.system(size: 12, weight: selected ? .semibold : .regular))
+                    .foregroundStyle(selected ? Color.primary : Color.secondary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private static var cache: [WheelTheme: NSImage] = [:]
+
+    @MainActor
+    static func thumbnail(_ theme: WheelTheme) -> NSImage? {
+        if let img = cache[theme] { return img }
+        let c = WheelController()
+        c.debugDemo(files: [URL(fileURLWithPath: "/Peel preview/Photo.jpg")], hover: 2, dwell: 0)
+        // 离屏渲染时毛玻璃改用材质画，否则模糊的是窗口后面的桌面
+        let was = WheelView.offscreen
+        WheelView.offscreen = true
+        defer { WheelView.offscreen = was }
+        let view = ZStack {
+            LinearGradient(colors: [Color(red: 0.99, green: 0.62, blue: 0.33), Color(red: 0.86, green: 0.33, blue: 0.55)],
+                           startPoint: .topLeading, endPoint: .bottomTrailing)
+            WheelView(controller: c, theme: theme)
+        }
+        .frame(width: WheelMetrics.size, height: WheelMetrics.size)
+        .environment(\.colorScheme, .light)
+        let r = ImageRenderer(content: view)
+        r.scale = 0.5
+        let img = r.nsImage
+        cache[theme] = img
+        return img
     }
 }

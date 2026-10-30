@@ -100,6 +100,7 @@ enum DebugRender {
         var open: Int?
         var files: [URL] = []
         var snap = false
+        var dark = false
         while !args.isEmpty {
             let a = args.removeFirst()
             switch a {
@@ -107,6 +108,8 @@ enum DebugRender {
             case "--open": open = Int(args.removeFirst())
             case "--en": Settings.langOverride = .en
             case "--snap": snap = true
+            case "--theme": Settings.wheelThemeOverride = WheelTheme(rawValue: args.removeFirst())
+            case "--dark": dark = true
             default: files.append(URL(fileURLWithPath: a))
             }
         }
@@ -123,6 +126,7 @@ enum DebugRender {
             WheelView(controller: c)
         }
         .frame(width: WheelMetrics.size, height: WheelMetrics.size)
+        .environment(\.colorScheme, dark ? .dark : .light)
 
         let renderer = ImageRenderer(content: view)
         renderer.scale = 2

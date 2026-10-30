@@ -31,9 +31,11 @@ enum PeelColors {
 
 /// 系统毛玻璃，模糊窗口后面的内容
 struct BackdropBlur: NSViewRepresentable {
+    var material: NSVisualEffectView.Material = .popover
+
     func makeNSView(context: Context) -> NSVisualEffectView {
         let v = NSVisualEffectView()
-        v.material = .popover
+        v.material = material
         v.blendingMode = .behindWindow
         v.state = .active
         return v
@@ -46,12 +48,16 @@ struct WheelView: View {
     @ObservedObject var controller: WheelController
     /// DebugRender 离屏渲染时设为 true
     static var offscreen = false
+    /// 设置里的预览缩略图指定外观；nil 表示用当前设置
+    var theme: WheelTheme? = nil
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         let M = WheelMetrics.self
         let appeared = controller.appeared
+        let style = theme?.style(dark: false) ?? WheelTheme.style(dark: scheme == .dark)
         ZStack {
-            GlassBase(offscreen: Self.offscreen)
+            WheelBase(style: style, offscreen: Self.offscreen)
                 .scaleEffect(appeared ? 1 : 0.72)
                 .opacity(appeared ? 1 : 0)
                 .animation(appeared ? .spring(response: 0.38, dampingFraction: 0.78) : .easeIn(duration: 0.16),
@@ -59,7 +65,7 @@ struct WheelView: View {
 
             // 外圈进度条：悬停时从顶部顺时针跑满一圈才跳转
             Circle()
-                .stroke(Color.white.opacity(0.35), lineWidth: 6)
+                .stroke(style.ringTrack, lineWidth: 6)
                 .frame(width: M.ringR * 2, height: M.ringR * 2)
                 .opacity(appeared ? 1 : 0)
             Circle()
@@ -73,7 +79,7 @@ struct WheelView: View {
             if let node = controller.current {
                 ZStack {
                     ForEach(Array(node.children.enumerated()), id: \.element.id) { i, child in
-                        SectorView(node: child, index: i, count: node.children.count,
+                        SectorView(style: style, node: child, index: i, count: node.children.count,
                                    hovered: controller.hovered == .sector(i),
                                    detail: controller.detailText(for: child))
                             // 弹出：一瓣一瓣从中心旋转着展开；收起：一起快速缩回
@@ -85,7 +91,7 @@ struct WheelView: View {
                                        : .easeIn(duration: 0.14),
                                        value: appeared)
                     }
-                    CenterView(controller: controller, node: node)
+                    CenterView(style: style, controller: controller, node: node)
                         .scaleEffect(appeared ? 1 : 0.4)
                         .opacity(appeared ? 1 : 0)
                         .animation(appeared ? .spring(response: 0.36, dampingFraction: 0.65) : .easeIn(duration: 0.14),
@@ -178,6 +184,7 @@ struct SectorShape: Shape {
 }
 
 struct SectorView: View {
+    let style: WheelStyle
     let node: WheelNode
     let index: Int
     let count: Int
@@ -196,27 +203,40 @@ struct SectorView: View {
             : AnyShape(SectorShape(midDeg: mid, halfSpanDeg: step / 2,
                                    inner: M.innerR + inset, outer: M.outerR - inset,
                                    sideInset: M.gap / 2 + inset))
-        let fill = hovered ? PeelColors.hot : PeelColors.creamLit
+        let fill = hovered ? style.hotFill : style.sectorFill
         let rad = mid * .pi / 180
         let labelPos = CGPoint(x: M.size / 2 + midR * CGFloat(cos(rad)),
                                y: M.size / 2 + midR * CGFloat(sin(rad)))
         // 悬停时沿中线往外弹出
-        let pop: CGFloat = hovered && count > 1 ? 7 : 0
+        let pop: CGFloat = hovered && count > 1 ? style.pop : 0
         let compact = count >= 6
         let even = FillStyle(eoFill: true)
 
         ZStack {
             ZStack {
+                // 描边：先画一圈更粗的，再用填充盖住，只露出外沿（圆角是靠粗描边做出来的）
+                if let line = style.outline ?? style.hairline {
+                    let w = style.outline != nil ? style.outlineWidth : 0.6
+                    shape.stroke(line, style: StrokeStyle(lineWidth: inset * 2 + w * 2, lineJoin: .round))
+                }
                 shape.fill(fill, style: even)
                     .overlay(shape.stroke(fill, style: StrokeStyle(lineWidth: inset * 2, lineJoin: .round)))
-                // 立体感：圆角边带上叠一层上亮下暗的高光，像倒角
-                shape.stroke(LinearGradient(colors: [Color.white.opacity(hovered ? 0.18 : 0.42),
-                                                     Color.white.opacity(0)],
-                                            startPoint: .top, endPoint: .center),
-                             style: StrokeStyle(lineWidth: inset * 2, lineJoin: .round))
+                    .compositingGroup()
+                    .opacity(hovered ? style.hotOpacity : style.sectorOpacity)
+                if style.bevel {
+                    // 立体感：圆角边带上叠一层上亮下暗的高光，像倒角
+                    shape.stroke(LinearGradient(colors: [Color.white.opacity(hovered ? 0.18 : 0.42),
+                                                         Color.white.opacity(0)],
+                                                startPoint: .top, endPoint: .center),
+                                 style: StrokeStyle(lineWidth: inset * 2, lineJoin: .round))
+                }
+                if style.glassSheen {
+                    shape.fill(LinearGradient(colors: [Color.white.opacity(0.3), Color.white.opacity(0)],
+                                              startPoint: .top, endPoint: .center), style: even)
+                }
             }
-            .shadow(color: hovered ? Color.orange.opacity(0.55) : Color(red: 0.5, green: 0.28, blue: 0.12).opacity(0.18),
-                    radius: hovered ? 14 : 5, y: hovered ? 0 : 3)
+            .shadow(color: hovered ? Color.orange.opacity(style.hoverGlow > 0 ? 0.55 : 0) : style.sectorShadow,
+                    radius: hovered ? style.hoverGlow : 5, y: hovered ? 0 : 3)
 
             VStack(spacing: 3) {
                 Image(systemName: node.symbol)
@@ -233,8 +253,8 @@ struct SectorView: View {
                         .lineLimit(1)
                 }
             }
-            .foregroundStyle(hovered ? Color.white : PeelColors.ink)
-            .shadow(color: hovered ? Color(red: 0.6, green: 0.2, blue: 0).opacity(0.35) : .clear, radius: 2, y: 1)
+            .foregroundStyle(hovered ? style.hotInk : style.ink)
+            .shadow(color: hovered && !style.isCartoon ? Color(red: 0.6, green: 0.2, blue: 0).opacity(0.35) : .clear, radius: 2, y: 1)
             .frame(width: compact ? 64 : 84)
             .position(labelPos)
         }
@@ -245,6 +265,7 @@ struct SectorView: View {
 }
 
 struct CenterView: View {
+    let style: WheelStyle
     @ObservedObject var controller: WheelController
     let node: WheelNode
 
@@ -255,12 +276,16 @@ struct CenterView: View {
 
         ZStack {
             Circle()
-                .fill(hovered ? AnyShapeStyle(PeelColors.hot)
-                              : AnyShapeStyle(LinearGradient(colors: [Color.white.opacity(0.97), Color(red: 1, green: 0.95, blue: 0.9).opacity(0.92)],
-                                                             startPoint: .top, endPoint: .bottom)))
-                .overlay(Circle().strokeBorder(LinearGradient(colors: [Color.white, Color.white.opacity(0.3)],
-                                                              startPoint: .top, endPoint: .bottom), lineWidth: 1.2))
-                .shadow(color: hovered ? Color.orange.opacity(0.5) : Color.black.opacity(0.14),
+                .fill(hovered ? style.hotFill : style.centerFill)
+                .overlay {
+                    if let line = style.centerOutline {
+                        Circle().strokeBorder(line, lineWidth: style.isCartoon ? 2.5 : 1.2)
+                    } else {
+                        Circle().strokeBorder(LinearGradient(colors: [Color.white, Color.white.opacity(0.3)],
+                                                             startPoint: .top, endPoint: .bottom), lineWidth: 1.2)
+                    }
+                }
+                .shadow(color: style.isCartoon ? .clear : (hovered ? Color.orange.opacity(0.5) : Color.black.opacity(0.14)),
                         radius: hovered ? 12 : 7, y: hovered ? 0 : 3)
 
             VStack(spacing: 3) {
@@ -287,7 +312,7 @@ struct CenterView: View {
                         .opacity(0.65)
                 }
             }
-            .foregroundStyle(hovered ? Color.white : PeelColors.ink)
+            .foregroundStyle(hovered ? style.hotInk : style.ink)
             .frame(width: r * 2 - 16)
         }
         .frame(width: r * 2, height: r * 2)
