@@ -9,7 +9,7 @@ enum WheelTheme: String, CaseIterable, Identifiable {
     var title: LText {
         switch self {
         case .classic: return LText("经典", "Classic")
-        case .simple: return LText("简洁橙", "Simple Orange")
+        case .simple: return LText("磨砂", "Frosted")
         case .cartoon: return LText("卡通", "Cartoon")
         case .glass: return LText("玻璃", "Glass")
         }
@@ -46,7 +46,7 @@ enum WheelTheme: String, CaseIterable, Identifiable {
                 hotFill: AnyShapeStyle(Color(red: 1.0, green: 0.5, blue: 0.12)),
                 ink: dark ? Color.white.opacity(0.9) : Color.black.opacity(0.8),
                 sectorOpacity: dark ? 0.14 : 0.7,
-                grain: dark ? 0.06 : 0.09,
+                grain: dark ? 0.025 : 0.045,
                 hoverGlow: 0, pop: 0,
                 centerFill: AnyShapeStyle(dark ? Color.white.opacity(0.12) : Color.white.opacity(0.75)),
                 centerOutline: .clear,
@@ -71,11 +71,12 @@ enum WheelTheme: String, CaseIterable, Identifiable {
                 base: .clearGlass,
                 sectorFill: AnyShapeStyle(Color.white),
                 hotFill: AnyShapeStyle(Color(red: 1.0, green: 0.5, blue: 0.15)),
-                ink: dark ? inkLight : Color(white: 0.1),
-                sectorOpacity: dark ? 0.05 : 0.12, hotOpacity: 0.62,
+                ink: dark ? inkLight : Color(white: 0.08),
+                inkGlow: dark ? Color.black.opacity(0.6) : Color.white.opacity(0.85),
+                sectorOpacity: dark ? 0.04 : 0.08, hotOpacity: 0.6,
                 glassSheen: true, rim: true,
                 hoverGlow: 16,
-                centerFill: AnyShapeStyle(dark ? Color.white.opacity(0.08) : Color.white.opacity(0.22)),
+                centerFill: AnyShapeStyle(dark ? Color.white.opacity(0.06) : Color.white.opacity(0.14)),
                 centerOutline: Color.white.opacity(0.85))
         }
     }
@@ -96,6 +97,8 @@ struct WheelStyle {
     var hotFill: AnyShapeStyle
     var ink: Color
     var hotInk: Color = .white
+    /// 文字背后的柔光（透明玻璃时保证在任何背景上都看得清）
+    var inkGlow: Color? = nil
     /// 扇区整体透明度（玻璃）：填充和圆角描边先合成再统一变透明，重叠处才不会更深
     var sectorOpacity: Double = 1
     var hotOpacity: Double = 1
@@ -144,9 +147,10 @@ struct WheelBase: View {
                 .overlay(Circle().strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5))
                 .shadow(color: .black.opacity(0.25), radius: 20, y: 8)
             case .clearGlass:
+                // 透明玻璃不做模糊（模糊就成磨砂了）：只有很淡的一层白和高光边，背后看得清清楚楚
                 ZStack {
-                    material
-                    Circle().fill(LinearGradient(colors: [Color.white.opacity(0.22), Color.white.opacity(0)],
+                    Circle().fill(Color.white.opacity(0.06))
+                    Circle().fill(LinearGradient(colors: [Color.white.opacity(0.2), Color.white.opacity(0)],
                                                  startPoint: .topLeading, endPoint: .center))
                     Circle().strokeBorder(Color.black.opacity(0.1), lineWidth: 0.5)
                     Circle().strokeBorder(LinearGradient(colors: [Color.white, Color.white.opacity(0.1), Color.white.opacity(0.6)],
@@ -154,7 +158,7 @@ struct WheelBase: View {
                                           lineWidth: 1.5)
                         .padding(0.5)
                 }
-                .shadow(color: .black.opacity(0.16), radius: 18, y: 6)
+                .shadow(color: .black.opacity(0.1), radius: 14, y: 5)
             case .flat(let color):
                 Circle().fill(color).shadow(color: .black.opacity(0.22), radius: 16, y: 6)
             case .cartoon(let line, let paper):

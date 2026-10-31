@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.2 — 2026-10-31
+- "Simple" style renamed **Frosted**; its grain is subtler and left off the highlighted sector.
+- **Glass** is now truly clear: no blur behind the wheel, only a faint tint, bright edges and a reflection; labels get a soft glow so they stay readable on any background.
+
 ## 0.10.1 — 2026-10-30
 - **Simple** style is now frosted glass: hazy white panels with a fine grain.
 - **Glass** style is clearer: nearly transparent sectors with a thin bright rim (light from the top left) and a diagonal reflection; hover is a translucent orange.

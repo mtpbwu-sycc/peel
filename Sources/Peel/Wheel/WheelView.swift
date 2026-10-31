@@ -235,7 +235,7 @@ struct SectorView: View {
                         .overlay(shape.stroke(ImagePaint(image: Image(nsImage: Grain.image), scale: 0.5),
                                               style: StrokeStyle(lineWidth: inset * 2, lineJoin: .round)))
                         .compositingGroup()
-                        .opacity(style.grain)
+                        .opacity(hovered ? 0 : style.grain)
                 }
                 if style.glassSheen {
                     // 斜向的一道反光
@@ -279,7 +279,9 @@ struct SectorView: View {
                 }
             }
             .foregroundStyle(hovered ? style.hotInk : style.ink)
-            .shadow(color: hovered && !style.isCartoon ? Color(red: 0.6, green: 0.2, blue: 0).opacity(0.35) : .clear, radius: 2, y: 1)
+            .shadow(color: hovered && !style.isCartoon ? Color(red: 0.6, green: 0.2, blue: 0).opacity(0.35)
+                                                       : (style.inkGlow ?? .clear), radius: 2, y: hovered ? 1 : 0)
+            .shadow(color: hovered ? .clear : (style.inkGlow ?? .clear), radius: 5)
             .frame(width: compact ? 64 : 84)
             .position(labelPos)
         }
@@ -338,6 +340,7 @@ struct CenterView: View {
                 }
             }
             .foregroundStyle(hovered ? style.hotInk : style.ink)
+            .shadow(color: hovered ? .clear : (style.inkGlow ?? .clear), radius: 4)
             .frame(width: r * 2 - 16)
         }
         .frame(width: r * 2, height: r * 2)
