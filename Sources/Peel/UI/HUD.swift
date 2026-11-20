@@ -15,7 +15,8 @@ final class HUD {
 
     /// 气泡尖角高度、阴影留白（与 HUDView 一致）
     static let arrowHeight: CGFloat = 9
-    static let margin: CGFloat = 18
+    /// 留白要比阴影扩散的范围大，否则阴影会被窗口边缘切出一条硬边
+    static let margin: CGFloat = 40
     /// 文字最宽多少，超过就换行
     static let maxTextWidth: CGFloat = 340
 
@@ -40,16 +41,17 @@ final class HUD {
             model.shown = false
             p.alphaValue = 1
             p.orderFrontRegardless()
-            DispatchQueue.main.async {
-                withAnimation(.spring(response: 0.32, dampingFraction: 0.7)) { self.model.shown = true }
+            // 等窗口真正画出第一帧（缩小、透明的状态）再开始动画，否则系统会跳过动画直接出现
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) {
+                withAnimation(.spring(response: 0.38, dampingFraction: 0.68)) { self.model.shown = true }
             }
         }
 
         guard let duration else { return }
         let work = DispatchWorkItem { [weak self, weak p] in
             guard let self, let p else { return }
-            withAnimation(.easeIn(duration: 0.18)) { self.model.shown = false }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation(.easeIn(duration: 0.2)) { self.model.shown = false }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.24) {
                 if !self.model.shown { p.orderOut(nil) }
             }
         }
@@ -184,9 +186,12 @@ struct HUDView: View {
                     .onChange(of: geo.size.width) { bubbleWidth = $0 }
             }
         }
-        .shadow(color: .black.opacity(0.22), radius: 12, y: 4)
-        // 从尖角处“长”出来
-        .scaleEffect(model.shown ? 1 : 0.6, anchor: anchorPoint(localArrow))
+        // 两层阴影：贴近的一层勾出轮廓，大而淡的一层柔和地融进背景
+        .shadow(color: .black.opacity(0.08), radius: 1.5, y: 0.5)
+        .shadow(color: .black.opacity(0.16), radius: 16, y: 8)
+        // 从尖角处“长”出来：放大 + 往下滑一点 + 渐显
+        .scaleEffect(model.shown ? 1 : 0.5, anchor: anchorPoint(localArrow))
+        .offset(y: model.shown ? 0 : -10)
         .opacity(model.shown ? 1 : 0)
         .padding(HUD.margin)
     }

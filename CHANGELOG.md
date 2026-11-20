@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.4 — 2026-11-20
+- The notification bubble under the menu bar icon now springs out of its arrow (grows, slides down slightly, fades in) and shrinks back when it goes.
+- Its shadow is softer and no longer cut off by a hard edge.
+
 ## 0.10.3 — 2026-11-20
 - Fixed: without Accessibility permission, holding anywhere in Finder (empty space, toolbar) opened an empty wheel. Peel now asks Finder first and only opens the wheel when a file is actually selected; the toolbar area is ignored.
 - Removed the orange progress ring around the wheel's edge (it flashed like a border while hovering a category). Hover progress is now a small ring under the sector's label.
