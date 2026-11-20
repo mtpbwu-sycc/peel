@@ -49,8 +49,7 @@ enum WheelTheme: String, CaseIterable, Identifiable {
                 grain: dark ? 0.025 : 0.045,
                 hoverGlow: 0, pop: 0,
                 centerFill: AnyShapeStyle(dark ? Color.white.opacity(0.12) : Color.white.opacity(0.75)),
-                centerOutline: .clear,
-                ringTrack: dark ? Color.white.opacity(0.15) : Color.black.opacity(0.08))
+                centerOutline: .clear)
         case .cartoon:
             // 粗描边 + 平涂 + 硬投影，和宣传动画一致
             let line = dark ? Color(red: 1.0, green: 0.93, blue: 0.85) : brown
@@ -63,8 +62,7 @@ enum WheelTheme: String, CaseIterable, Identifiable {
                 outline: line, outlineWidth: 2.5,
                 hoverGlow: 0, pop: 4,
                 centerFill: AnyShapeStyle(dark ? Color(white: 0.22) : Color.white),
-                centerOutline: line,
-                ringTrack: line.opacity(0.25))
+                centerOutline: line)
         case .glass:
             // 透明玻璃：扇区几乎全透明，靠一圈左上亮、右下暗的细亮边和一道斜向反光体现质感；悬停是半透明的橙色玻璃
             return WheelStyle(
@@ -122,7 +120,6 @@ struct WheelStyle {
     var pop: CGFloat = 7
     var centerFill: AnyShapeStyle
     var centerOutline: Color? = nil
-    var ringTrack: Color = Color.white.opacity(0.35)
 
     var isCartoon: Bool { if case .cartoon = base { return true } else { return false } }
 }

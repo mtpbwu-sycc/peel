@@ -63,24 +63,12 @@ struct WheelView: View {
                 .animation(appeared ? .spring(response: 0.38, dampingFraction: 0.78) : .easeIn(duration: 0.16),
                            value: appeared)
 
-            // 外圈进度条：悬停时从顶部顺时针跑满一圈才跳转
-            Circle()
-                .stroke(style.ringTrack, lineWidth: 6)
-                .frame(width: M.ringR * 2, height: M.ringR * 2)
-                .opacity(appeared ? 1 : 0)
-            Circle()
-                .trim(from: 0, to: controller.dwellProgress)
-                .stroke(PeelColors.ring, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                .frame(width: M.ringR * 2, height: M.ringR * 2)
-                .shadow(color: Color.orange.opacity(0.7), radius: 4)
-                .opacity(controller.dwellProgress > 0 ? 1 : 0)
-
             if let node = controller.current {
                 ZStack {
                     ForEach(Array(node.children.enumerated()), id: \.element.id) { i, child in
                         SectorView(style: style, node: child, index: i, count: node.children.count,
                                    hovered: controller.hovered == .sector(i),
+                                   dwell: controller.hovered == .sector(i) ? controller.dwellProgress : 0,
                                    detail: controller.detailText(for: child))
                             // 弹出：一瓣一瓣从中心旋转着展开；收起：一起快速缩回
                             .scaleEffect(appeared ? 1 : 0.3)
@@ -100,7 +88,7 @@ struct WheelView: View {
                 .id(node.id)
                 .transition(.asymmetric(
                     insertion: .scale(scale: 0.75).combined(with: .opacity),
-                    removal: .scale(scale: 1.12).combined(with: .opacity)))
+                    removal: .scale(scale: 1.03).combined(with: .opacity)))
             }
         }
         .frame(width: M.size, height: M.size)
@@ -189,6 +177,8 @@ struct SectorView: View {
     let index: Int
     let count: Int
     let hovered: Bool
+    /// 悬停在分类上时展开的进度（0→1），画成标题下的小圆环
+    var dwell: Double = 0
     /// 扇区标题下的小字（格式说明、压缩后大小等）
     var detail: String?
 
@@ -277,6 +267,7 @@ struct SectorView: View {
                         .opacity(0.75)
                         .lineLimit(1)
                 }
+                if dwell > 0 { DwellRing(progress: dwell).padding(.top, 2) }
             }
             .foregroundStyle(hovered ? style.hotInk : style.ink)
             .shadow(color: hovered && !style.isCartoon ? Color(red: 0.6, green: 0.2, blue: 0).opacity(0.35)
@@ -337,6 +328,7 @@ struct CenterView: View {
                     Text(controller.mode == .click ? t("点这里返回", "Click to go back") : t("拖回中心返回", "Back to center"))
                         .font(.system(size: 8.5, weight: .medium))
                         .opacity(0.65)
+                    if hovered && controller.dwellProgress > 0 { DwellRing(progress: controller.dwellProgress) }
                 }
             }
             .foregroundStyle(hovered ? style.hotInk : style.ink)
@@ -372,5 +364,21 @@ struct CenterView: View {
                 .font(.system(size: 22))
                 .symbolRenderingMode(.hierarchical)
         }
+    }
+}
+
+/// 悬停展开的进度：标题下面一个小圆环，跑满就展开（替代原来轮盘外圈的进度条）
+struct DwellRing: View {
+    let progress: Double
+
+    var body: some View {
+        ZStack {
+            // 跟随文字颜色（悬停时是白色或深色，取决于外观）
+            Circle().stroke(ForegroundStyle().opacity(0.3), lineWidth: 2)
+            Circle().trim(from: 0, to: progress)
+                .stroke(ForegroundStyle(), style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+        }
+        .frame(width: 12, height: 12)
     }
 }

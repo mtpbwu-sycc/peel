@@ -59,9 +59,10 @@ enum Settings {
         set { d.set(Shortcut.wheelPresets.firstIndex(of: newValue) ?? 0, forKey: "wheelShortcut") }
     }
 
-    /// Word 转 PDF 时用 Microsoft Word 导出（还原度最高，但慢，且可能用到微软在线服务）；默认用 LibreOffice
+    /// Word 转 PDF 时用 Microsoft Word 导出（还原度最高，但慢，且可能用到微软在线服务）。
+    /// 默认打开（装了 Word 才会生效）；关掉则用 LibreOffice
     static var useWordForPDF: Bool {
-        get { d.bool(forKey: "useWordForPDF") }
+        get { d.object(forKey: "useWordForPDF") as? Bool ?? true }
         set { d.set(newValue, forKey: "useWordForPDF") }
     }
 

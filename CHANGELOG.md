@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.3 — 2026-11-20
+- Fixed: without Accessibility permission, holding anywhere in Finder (empty space, toolbar) opened an empty wheel. Peel now asks Finder first and only opens the wheel when a file is actually selected; the toolbar area is ignored.
+- Removed the orange progress ring around the wheel's edge (it flashed like a border while hovering a category). Hover progress is now a small ring under the sector's label.
+- Word → PDF uses Microsoft Word by default when Word is installed (LibreOffice otherwise; can be switched off in Settings).
+
 ## 0.10.2 — 2026-10-31
 - "Simple" style renamed **Frosted**; its grain is subtler and left off the highlighted sector.
 - **Glass** is now truly clear: no blur behind the wheel, only a faint tint, bright edges and a reflection; labels get a soft glow so they stay readable on any background.

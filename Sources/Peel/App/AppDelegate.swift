@@ -58,6 +58,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if args.contains("--en") { Settings.langOverride = .en }
         if args.contains("--zh") { Settings.langOverride = .zh }
         if args.contains("--settings") { SettingsWindow.open() }
+        // 开发用：在屏幕中央弹出真实轮盘，按时间表模拟悬停，方便录屏检查动画（--hover-test 文件）
+        if let i = args.firstIndex(of: "--hover-test"), args.indices.contains(i + 1) {
+            let f = URL(fileURLWithPath: args[i + 1])
+            let screen = NSScreen.main?.frame ?? .zero
+            let w = WheelController.shared
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                w.show(at: NSPoint(x: screen.midX, y: screen.midY), files: [f], mode: .drag)
+            }
+            let plan: [(Double, HitZone?)] = [(2.0, .sector(0)), (3.8, .sector(1)), (4.6, .sector(2)), (5.4, nil), (6.0, .sector(1))]
+            for (time, zone) in plan {
+                DispatchQueue.main.asyncAfter(deadline: .now() + time) { w.debugHover(zone) }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 7.5) { w.hide() }
+        }
         if let i = args.firstIndex(of: "--onboarding") {
             OnboardingWindow.open(startAt: args.indices.contains(i + 1) ? Int(args[i + 1]) ?? 0 : 0)
         }

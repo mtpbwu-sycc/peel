@@ -480,6 +480,9 @@ final class WheelController: ObservableObject {
         appeared = true
     }
 
+    /// 开发用：模拟鼠标悬停到某个区域（走真实的悬停 / 展开逻辑）
+    func debugHover(_ zone: HitZone?) { setHovered(zone) }
+
     /// 仅供演示动画使用：直接设定悬停的扇区和外圈进度
     func debugDemo(files: [URL], hover: Int?, dwell: Double) {
         if self.files != files {

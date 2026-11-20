@@ -177,6 +177,25 @@ enum FinderBridge {
         return (v as! AXUIElement)
     }
 
+    /// 不用辅助功能，只看窗口位置：按在 Finder 窗口顶部的标题栏 / 工具栏区域（约 52 点高）
+    static func isOnFinderToolbar(_ p: NSPoint) -> Bool {
+        let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
+        let cg = CGPoint(x: p.x, y: primaryHeight - p.y)   // 窗口列表用左上角为原点的坐标
+        guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+                as? [[String: Any]] else { return false }
+        // 列表按前后顺序排列：第一个包含这个点的普通窗口就是按到的窗口
+        for w in list where (w[kCGWindowLayer as String] as? Int) == 0 {
+            guard let b = w[kCGWindowBounds as String] as? [String: CGFloat],
+                  let x = b["X"], let y = b["Y"], let width = b["Width"], let height = b["Height"] else { continue }
+            let r = CGRect(x: x, y: y, width: width, height: height)
+            guard r.contains(cg) else { continue }
+            guard (w[kCGWindowOwnerName as String] as? String) == "Finder"
+                    || (w[kCGWindowOwnerName as String] as? String) == "访达" else { return false }
+            return cg.y - r.minY < 52
+        }
+        return false
+    }
+
     // MARK: - 权限
 
     static func openAccessibilitySettings() {
