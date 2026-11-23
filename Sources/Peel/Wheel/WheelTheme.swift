@@ -3,7 +3,7 @@ import SwiftUI
 
 /// 轮盘外观。只改样子，扇区、交互、动画都一样
 enum WheelTheme: String, CaseIterable, Identifiable {
-    case classic, simple, cartoon, glass
+    case classic, simple, cartoon, midnight, paper, citrus
     var id: String { rawValue }
 
     var title: LText {
@@ -11,7 +11,9 @@ enum WheelTheme: String, CaseIterable, Identifiable {
         case .classic: return LText("经典", "Classic")
         case .simple: return LText("磨砂", "Frosted")
         case .cartoon: return LText("卡通", "Cartoon")
-        case .glass: return LText("玻璃", "Glass")
+        case .midnight: return LText("午夜", "Midnight")
+        case .paper: return LText("纸张", "Paper")
+        case .citrus: return LText("柑橘", "Citrus")
         }
     }
 
@@ -49,7 +51,8 @@ enum WheelTheme: String, CaseIterable, Identifiable {
                 grain: dark ? 0.025 : 0.045,
                 hoverGlow: 0, pop: 0,
                 centerFill: AnyShapeStyle(dark ? Color.white.opacity(0.12) : Color.white.opacity(0.75)),
-                centerOutline: .clear)
+                centerOutline: .clear,
+                ringTrack: dark ? Color.white.opacity(0.12) : Color.black.opacity(0.07), ringGlow: false)
         case .cartoon:
             // 粗描边 + 平涂 + 硬投影，和宣传动画一致
             let line = dark ? Color(red: 1.0, green: 0.93, blue: 0.85) : brown
@@ -62,20 +65,49 @@ enum WheelTheme: String, CaseIterable, Identifiable {
                 outline: line, outlineWidth: 2.5,
                 hoverGlow: 0, pop: 4,
                 centerFill: AnyShapeStyle(dark ? Color(white: 0.22) : Color.white),
-                centerOutline: line)
-        case .glass:
-            // 透明玻璃：扇区几乎全透明，靠一圈左上亮、右下暗的细亮边和一道斜向反光体现质感；悬停是半透明的橙色玻璃
+                centerOutline: line,
+                ringColor: Color(red: 1.0, green: 0.55, blue: 0.2), ringTrack: line.opacity(0.22), ringGlow: false)
+        case .midnight:
+            // 深夜蓝黑底，扇区是低调的深灰蓝，悬停时亮起橙色并发光
             return WheelStyle(
-                base: .clearGlass,
+                base: .flat(Color(red: 0.07, green: 0.075, blue: 0.105)),
+                sectorFill: AnyShapeStyle(LinearGradient(colors: [Color(red: 0.18, green: 0.19, blue: 0.25),
+                                                                  Color(red: 0.12, green: 0.13, blue: 0.18)],
+                                                         startPoint: .top, endPoint: .bottom)),
+                hotFill: AnyShapeStyle(orange),
+                ink: Color.white.opacity(0.88),
+                hairline: Color.white.opacity(0.07),
+                hoverGlow: 22, pop: 6,
+                centerFill: AnyShapeStyle(Color(red: 0.1, green: 0.11, blue: 0.15)),
+                centerOutline: Color.white.opacity(0.08),
+                ringTrack: Color.white.opacity(0.08))
+        case .paper:
+            // 米白纸面 + 细黑线，单色；悬停变成实心黑
+            let line = dark ? Color.white.opacity(0.35) : Color(white: 0.15).opacity(0.55)
+            return WheelStyle(
+                base: .flat(dark ? Color(white: 0.11) : Color(red: 0.975, green: 0.968, blue: 0.955)),
+                sectorFill: AnyShapeStyle(dark ? Color(white: 0.15) : Color.white),
+                hotFill: AnyShapeStyle(dark ? Color.white : Color(white: 0.1)),
+                ink: dark ? Color.white.opacity(0.85) : Color(white: 0.12),
+                hotInk: dark ? Color(white: 0.1) : .white,
+                outline: line, outlineWidth: 0.8,
+                hoverGlow: 0, pop: 3,
+                centerFill: AnyShapeStyle(dark ? Color(white: 0.15) : Color.white),
+                centerOutline: line,
+                ringColor: dark ? .white : Color(white: 0.1),
+                ringTrack: dark ? Color.white.opacity(0.12) : Color.black.opacity(0.08), ringGlow: false)
+        case .citrus:
+            // 每个扇区一种水果色（橙、青柠、粉、葡萄……），悬停时变成饱和的同色
+            return WheelStyle(
+                base: .flat(dark ? Color(white: 0.12) : Color.white),
                 sectorFill: AnyShapeStyle(Color.white),
-                hotFill: AnyShapeStyle(Color(red: 1.0, green: 0.5, blue: 0.15)),
-                ink: dark ? inkLight : Color(white: 0.08),
-                inkGlow: dark ? Color.black.opacity(0.6) : Color.white.opacity(0.85),
-                sectorOpacity: dark ? 0.04 : 0.08, hotOpacity: 0.6,
-                glassSheen: true, rim: true,
-                hoverGlow: 16,
-                centerFill: AnyShapeStyle(dark ? Color.white.opacity(0.06) : Color.white.opacity(0.14)),
-                centerOutline: Color.white.opacity(0.85))
+                hotFill: AnyShapeStyle(orange),
+                ink: dark ? Color.white.opacity(0.9) : Color(red: 0.2, green: 0.17, blue: 0.15),
+                palette: WheelStyle.citrus(dark: dark),
+                hoverGlow: 0, pop: 6,
+                centerFill: AnyShapeStyle(dark ? Color(white: 0.18) : Color(red: 1.0, green: 0.98, blue: 0.95)),
+                centerOutline: .clear,
+                ringTrack: dark ? Color.white.opacity(0.1) : Color.black.opacity(0.06), ringGlow: false)
         }
     }
 }
@@ -85,7 +117,6 @@ struct WheelStyle {
     enum Base {
         case bevelGlass                        // 经典：毛玻璃 + 高光 + 内阴影 + 亮边
         case plainGlass                        // 简洁：毛玻璃 + 细白边 + 投影
-        case clearGlass                        // 玻璃：更通透、更亮的边
         case cartoon(line: Color, paper: Color) // 卡通：实色底 + 粗描边 + 硬投影
         case flat(Color)                       // 简洁：实色底盘 + 一点柔和投影
     }
@@ -95,8 +126,6 @@ struct WheelStyle {
     var hotFill: AnyShapeStyle
     var ink: Color
     var hotInk: Color = .white
-    /// 文字背后的柔光（透明玻璃时保证在任何背景上都看得清）
-    var inkGlow: Color? = nil
     /// 扇区整体透明度（玻璃）：填充和圆角描边先合成再统一变透明，重叠处才不会更深
     var sectorOpacity: Double = 1
     var hotOpacity: Double = 1
@@ -104,12 +133,10 @@ struct WheelStyle {
     var bevel = false
     /// 扇区的细描边（简洁、玻璃）
     var hairline: Color? = nil
-    /// 扇区上的一道斜向反光（玻璃）
-    var glassSheen = false
-    /// 扇区外沿一圈细亮边，左上亮、右下暗（玻璃）
-    var rim = false
     /// 磨砂颗粒的强度（简洁）
     var grain: Double = 0
+    /// 每个扇区各自的颜色（柑橘）：(平时, 悬停)
+    var palette: [(soft: Color, strong: Color)]? = nil
     /// 扇区粗描边（卡通）
     var outline: Color? = nil
     var outlineWidth: CGFloat = 0
@@ -120,6 +147,24 @@ struct WheelStyle {
     var pop: CGFloat = 7
     var centerFill: AnyShapeStyle
     var centerOutline: Color? = nil
+    /// 外圈进度条：颜色、底轨、是否发光
+    var ringColor: Color = PeelColors.ring
+    var ringTrack: Color = Color.white.opacity(0.35)
+    var ringGlow = true
+    /// 悬停光晕的颜色
+    var glowColor: Color = .orange
+
+    static func citrus(dark: Bool) -> [(soft: Color, strong: Color)] {
+        let hues: [(Color, Color)] = [
+            (Color(red: 1.0, green: 0.84, blue: 0.66), Color(red: 1.0, green: 0.55, blue: 0.15)),   // 橙
+            (Color(red: 0.86, green: 0.94, blue: 0.62), Color(red: 0.5, green: 0.75, blue: 0.12)),  // 青柠
+            (Color(red: 1.0, green: 0.82, blue: 0.86), Color(red: 0.94, green: 0.36, blue: 0.52)),  // 粉
+            (Color(red: 0.87, green: 0.82, blue: 0.98), Color(red: 0.55, green: 0.4, blue: 0.9)),   // 葡萄
+            (Color(red: 1.0, green: 0.94, blue: 0.62), Color(red: 0.96, green: 0.74, blue: 0.08)),  // 柠檬
+            (Color(red: 0.76, green: 0.94, blue: 0.88), Color(red: 0.16, green: 0.68, blue: 0.54)), // 薄荷
+        ]
+        return dark ? hues.map { ($0.1.opacity(0.32), $0.1) } : hues
+    }
 
     var isCartoon: Bool { if case .cartoon = base { return true } else { return false } }
 }
@@ -143,19 +188,6 @@ struct WheelBase: View {
                 }
                 .overlay(Circle().strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5))
                 .shadow(color: .black.opacity(0.25), radius: 20, y: 8)
-            case .clearGlass:
-                // 透明玻璃不做模糊（模糊就成磨砂了）：只有很淡的一层白和高光边，背后看得清清楚楚
-                ZStack {
-                    Circle().fill(Color.white.opacity(0.06))
-                    Circle().fill(LinearGradient(colors: [Color.white.opacity(0.2), Color.white.opacity(0)],
-                                                 startPoint: .topLeading, endPoint: .center))
-                    Circle().strokeBorder(Color.black.opacity(0.1), lineWidth: 0.5)
-                    Circle().strokeBorder(LinearGradient(colors: [Color.white, Color.white.opacity(0.1), Color.white.opacity(0.6)],
-                                                         startPoint: .topLeading, endPoint: .bottomTrailing),
-                                          lineWidth: 1.5)
-                        .padding(0.5)
-                }
-                .shadow(color: .black.opacity(0.1), radius: 14, y: 5)
             case .flat(let color):
                 Circle().fill(color).shadow(color: .black.opacity(0.22), radius: 16, y: 6)
             case .cartoon(let line, let paper):

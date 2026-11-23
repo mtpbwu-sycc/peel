@@ -63,7 +63,8 @@ private struct SettingsView: View {
         ScrollViewReader { proxy in
         Form {
             Section(t("轮盘外观", "Wheel style")) {
-                HStack(spacing: 10) {
+                // 每行 3 个，风格多了也不会把窗口撑宽
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 12) {
                     ForEach(WheelTheme.allCases) { th in
                         ThemeCard(theme: th, selected: theme == th) {
                             theme = th
@@ -72,6 +73,7 @@ private struct SettingsView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 4)
                 Toggle(t("系统深色模式时用深色轮盘", "Use a dark wheel in Dark Mode"), isOn: $followsDark)
                     .onChange(of: followsDark) { Settings.wheelFollowsDark = $0 }
             }

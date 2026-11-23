@@ -63,12 +63,24 @@ struct WheelView: View {
                 .animation(appeared ? .spring(response: 0.38, dampingFraction: 0.78) : .easeIn(duration: 0.16),
                            value: appeared)
 
+            // 外圈进度条：悬停在分类上时从顶部顺时针跑满一圈才展开；颜色按风格
+            Circle()
+                .stroke(style.ringTrack, lineWidth: 6)
+                .frame(width: M.ringR * 2, height: M.ringR * 2)
+                .opacity(appeared ? 1 : 0)
+            Circle()
+                .trim(from: 0, to: controller.dwellProgress)
+                .stroke(ringColor(style), style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .frame(width: M.ringR * 2, height: M.ringR * 2)
+                .shadow(color: style.ringGlow ? ringColor(style).opacity(0.7) : .clear, radius: 4)
+                .opacity(controller.dwellProgress > 0 ? 1 : 0)
+
             if let node = controller.current {
                 ZStack {
                     ForEach(Array(node.children.enumerated()), id: \.element.id) { i, child in
                         SectorView(style: style, node: child, index: i, count: node.children.count,
                                    hovered: controller.hovered == .sector(i),
-                                   dwell: controller.hovered == .sector(i) ? controller.dwellProgress : 0,
                                    detail: controller.detailText(for: child))
                             // 弹出：一瓣一瓣从中心旋转着展开；收起：一起快速缩回
                             .scaleEffect(appeared ? 1 : 0.3)
@@ -92,6 +104,12 @@ struct WheelView: View {
             }
         }
         .frame(width: M.size, height: M.size)
+    }
+
+    /// 进度条颜色：有分区配色（柑橘）时用悬停扇区的颜色
+    private func ringColor(_ style: WheelStyle) -> Color {
+        if let palette = style.palette, case .sector(let i)? = controller.hovered { return palette[i % palette.count].strong }
+        return style.ringColor
     }
 }
 
@@ -177,8 +195,6 @@ struct SectorView: View {
     let index: Int
     let count: Int
     let hovered: Bool
-    /// 悬停在分类上时展开的进度（0→1），画成标题下的小圆环
-    var dwell: Double = 0
     /// 扇区标题下的小字（格式说明、压缩后大小等）
     var detail: String?
 
@@ -210,9 +226,11 @@ struct SectorView: View {
                 }
                 // 平时和悬停是两整层，靠透明度交叉淡入淡出：
                 // 填充和圆角边始终是一体的，颜色也不会被弹簧动画“冲过头”变成暗橙色
-                body(of: shape, fill: style.sectorFill, even: even, inset: inset)
+                body(of: shape, fill: style.palette.map { AnyShapeStyle($0[index % $0.count].soft) } ?? style.sectorFill,
+                     even: even, inset: inset)
                     .opacity(hovered ? 0 : style.sectorOpacity)
-                body(of: shape, fill: style.hotFill, even: even, inset: inset)
+                body(of: shape, fill: style.palette.map { AnyShapeStyle($0[index % $0.count].strong) } ?? style.hotFill,
+                     even: even, inset: inset)
                     .opacity(hovered ? style.hotOpacity : 0)
                 if style.bevel {
                     // 立体感：圆角边带上叠一层上亮下暗的高光，像倒角
@@ -228,30 +246,8 @@ struct SectorView: View {
                         .compositingGroup()
                         .opacity(hovered ? 0 : style.grain)
                 }
-                if style.glassSheen {
-                    // 斜向的一道反光
-                    shape.fill(LinearGradient(stops: [.init(color: .white.opacity(0.0), location: 0.25),
-                                                      .init(color: .white.opacity(0.38), location: 0.42),
-                                                      .init(color: .white.opacity(0.0), location: 0.6)],
-                                              startPoint: UnitPoint(x: 0, y: 0), endPoint: UnitPoint(x: 1, y: 1)),
-                               style: even)
-                        .opacity(hovered ? 0.5 : 1)
-                }
-                if style.rim {
-                    // 外沿细亮边：先画一圈稍粗的渐变描边，再把扇区本身（含圆角）挖掉，只留外面约 1.2 点
-                    ZStack {
-                        shape.stroke(LinearGradient(colors: [Color.white.opacity(0.95), Color.white.opacity(0.12),
-                                                             Color.white.opacity(0.55)],
-                                                    startPoint: .topLeading, endPoint: .bottomTrailing),
-                                     style: StrokeStyle(lineWidth: inset * 2 + 2.4, lineJoin: .round))
-                        shape.fill(Color.black, style: even)
-                            .overlay(shape.stroke(Color.black, style: StrokeStyle(lineWidth: inset * 2, lineJoin: .round)))
-                            .blendMode(.destinationOut)
-                    }
-                    .compositingGroup()
-                }
             }
-            .shadow(color: style.hoverGlow > 0 && hovered ? Color.orange.opacity(0.55) : style.sectorShadow,
+            .shadow(color: style.hoverGlow > 0 && hovered ? style.glowColor.opacity(0.55) : style.sectorShadow,
                     radius: style.hoverGlow > 0 && hovered ? style.hoverGlow : 5, y: style.hoverGlow > 0 && hovered ? 0 : 3)
             // 颜色、光晕：短暂的缓出淡变，不用弹簧（弹簧会让颜色冲过头）
             .animation(.easeOut(duration: 0.15), value: hovered)
@@ -270,12 +266,9 @@ struct SectorView: View {
                         .opacity(0.75)
                         .lineLimit(1)
                 }
-                if dwell > 0 { DwellRing(progress: dwell).padding(.top, 2) }
             }
             .foregroundStyle(hovered ? style.hotInk : style.ink)
-            .shadow(color: hovered && !style.isCartoon ? Color.black.opacity(0.15)
-                                                       : (style.inkGlow ?? .clear), radius: 2, y: hovered ? 1 : 0)
-            .shadow(color: hovered ? .clear : (style.inkGlow ?? .clear), radius: 5)
+            .shadow(color: hovered && !style.isCartoon ? Color.black.opacity(0.15) : .clear, radius: 2, y: hovered ? 1 : 0)
             .frame(width: compact ? 64 : 84)
             .position(labelPos)
         }
@@ -314,8 +307,10 @@ struct CenterView: View {
                                                              startPoint: .top, endPoint: .bottom), lineWidth: 1.2)
                     }
                 }
-                .shadow(color: style.isCartoon ? .clear : (hovered ? Color.orange.opacity(0.5) : Color.black.opacity(0.14)),
-                        radius: hovered ? 12 : 7, y: hovered ? 0 : 3)
+                // 悬停光晕只在有光晕的风格里出现（纸张、磨砂、卡通没有），颜色也跟风格走
+                .shadow(color: style.isCartoon ? .clear
+                            : (hovered && style.hoverGlow > 0 ? style.glowColor.opacity(0.5) : Color.black.opacity(0.14)),
+                        radius: hovered && style.hoverGlow > 0 ? 12 : 7, y: hovered && style.hoverGlow > 0 ? 0 : 3)
 
             VStack(spacing: 3) {
                 if isRoot && controller.files.isEmpty {
@@ -339,11 +334,9 @@ struct CenterView: View {
                     Text(controller.mode == .click ? t("点这里返回", "Click to go back") : t("拖回中心返回", "Back to center"))
                         .font(.system(size: 8.5, weight: .medium))
                         .opacity(0.65)
-                    if hovered && controller.dwellProgress > 0 { DwellRing(progress: controller.dwellProgress) }
                 }
             }
             .foregroundStyle(hovered ? style.hotInk : style.ink)
-            .shadow(color: hovered ? .clear : (style.inkGlow ?? .clear), radius: 4)
             .frame(width: r * 2 - 16)
         }
         .frame(width: r * 2, height: r * 2)
@@ -375,21 +368,5 @@ struct CenterView: View {
                 .font(.system(size: 22))
                 .symbolRenderingMode(.hierarchical)
         }
-    }
-}
-
-/// 悬停展开的进度：标题下面一个小圆环，跑满就展开（替代原来轮盘外圈的进度条）
-struct DwellRing: View {
-    let progress: Double
-
-    var body: some View {
-        ZStack {
-            // 跟随文字颜色（悬停时是白色或深色，取决于外观）
-            Circle().stroke(ForegroundStyle().opacity(0.3), lineWidth: 2)
-            Circle().trim(from: 0, to: progress)
-                .stroke(ForegroundStyle(), style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-        }
-        .frame(width: 12, height: 12)
     }
 }

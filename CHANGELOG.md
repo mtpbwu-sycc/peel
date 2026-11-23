@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.0 — 2026-11-23
+- New wheel styles: **Midnight** (deep navy with a glowing orange highlight), **Paper** (off-white, thin lines, black highlight) and **Citrus** (a different fruit color per sector). Glass is removed; if it was selected, Peel switches to Classic.
+- The outer hover-progress ring is back, colored per style (black on Paper, the hovered sector's color on Citrus, no glow on flat styles).
+- The center's hover glow follows the style — no orange glow on Paper, Frosted or Cartoon.
+- Settings shows the style cards in a 3-column grid so the window no longer gets pushed wider.
+
 ## 0.10.5 — 2026-11-23
 - Fixed a dark orange edge flashing on a sector the moment it lights up: the highlight now cross-fades between two complete layers with a short ease-out instead of a spring (which overshot the color), and the dark shadow behind highlighted labels is gone.
 

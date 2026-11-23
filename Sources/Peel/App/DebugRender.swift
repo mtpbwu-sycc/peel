@@ -101,15 +101,18 @@ enum DebugRender {
         var files: [URL] = []
         var snap = false
         var dark = false
+        var bg: NSImage?
         while !args.isEmpty {
             let a = args.removeFirst()
             switch a {
             case "--hover": hover = Int(args.removeFirst())
             case "--open": open = Int(args.removeFirst())
             case "--en": Settings.langOverride = .en
+            case "--zh": Settings.langOverride = .zh
             case "--snap": snap = true
             case "--theme": Settings.wheelThemeOverride = WheelTheme(rawValue: args.removeFirst())
             case "--dark": dark = true
+            case "--bg": bg = NSImage(contentsOfFile: args.removeFirst())
             default: files.append(URL(fileURLWithPath: a))
             }
         }
@@ -122,7 +125,11 @@ enum DebugRender {
             c.debugSetup(files: files, open: open, hover: hover)
         }
         let view = ZStack {
-            LinearGradient(colors: [.orange, .pink, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+            if let bg {
+                Image(nsImage: bg).resizable().aspectRatio(contentMode: .fill)
+            } else {
+                LinearGradient(colors: [.orange, .pink, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+            }
             WheelView(controller: c)
         }
         .frame(width: WheelMetrics.size, height: WheelMetrics.size)
