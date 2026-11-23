@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.10.5 — 2026-11-23
+- Fixed a dark orange edge flashing on a sector the moment it lights up: the highlight now cross-fades between two complete layers with a short ease-out instead of a spring (which overshot the color), and the dark shadow behind highlighted labels is gone.
+
 ## 0.10.4 — 2026-11-20
 - The notification bubble under the menu bar icon now springs out of its arrow (grows, slides down slightly, fades in) and shrinks back when it goes.
 - Its shadow is softer and no longer cut off by a hard edge.

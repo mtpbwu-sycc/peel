@@ -193,7 +193,6 @@ struct SectorView: View {
             : AnyShape(SectorShape(midDeg: mid, halfSpanDeg: step / 2,
                                    inner: M.innerR + inset, outer: M.outerR - inset,
                                    sideInset: M.gap / 2 + inset))
-        let fill = hovered ? style.hotFill : style.sectorFill
         let rad = mid * .pi / 180
         let labelPos = CGPoint(x: M.size / 2 + midR * CGFloat(cos(rad)),
                                y: M.size / 2 + midR * CGFloat(sin(rad)))
@@ -209,10 +208,12 @@ struct SectorView: View {
                     let w = style.outline != nil ? style.outlineWidth : 0.6
                     shape.stroke(line, style: StrokeStyle(lineWidth: inset * 2 + w * 2, lineJoin: .round))
                 }
-                shape.fill(fill, style: even)
-                    .overlay(shape.stroke(fill, style: StrokeStyle(lineWidth: inset * 2, lineJoin: .round)))
-                    .compositingGroup()
-                    .opacity(hovered ? style.hotOpacity : style.sectorOpacity)
+                // 平时和悬停是两整层，靠透明度交叉淡入淡出：
+                // 填充和圆角边始终是一体的，颜色也不会被弹簧动画“冲过头”变成暗橙色
+                body(of: shape, fill: style.sectorFill, even: even, inset: inset)
+                    .opacity(hovered ? 0 : style.sectorOpacity)
+                body(of: shape, fill: style.hotFill, even: even, inset: inset)
+                    .opacity(hovered ? style.hotOpacity : 0)
                 if style.bevel {
                     // 立体感：圆角边带上叠一层上亮下暗的高光，像倒角
                     shape.stroke(LinearGradient(colors: [Color.white.opacity(hovered ? 0.18 : 0.42),
@@ -250,8 +251,10 @@ struct SectorView: View {
                     .compositingGroup()
                 }
             }
-            .shadow(color: hovered ? Color.orange.opacity(style.hoverGlow > 0 ? 0.55 : 0) : style.sectorShadow,
-                    radius: hovered ? style.hoverGlow : 5, y: hovered ? 0 : 3)
+            .shadow(color: style.hoverGlow > 0 && hovered ? Color.orange.opacity(0.55) : style.sectorShadow,
+                    radius: style.hoverGlow > 0 && hovered ? style.hoverGlow : 5, y: style.hoverGlow > 0 && hovered ? 0 : 3)
+            // 颜色、光晕：短暂的缓出淡变，不用弹簧（弹簧会让颜色冲过头）
+            .animation(.easeOut(duration: 0.15), value: hovered)
 
             VStack(spacing: 3) {
                 Image(systemName: node.symbol)
@@ -270,15 +273,23 @@ struct SectorView: View {
                 if dwell > 0 { DwellRing(progress: dwell).padding(.top, 2) }
             }
             .foregroundStyle(hovered ? style.hotInk : style.ink)
-            .shadow(color: hovered && !style.isCartoon ? Color(red: 0.6, green: 0.2, blue: 0).opacity(0.35)
+            .shadow(color: hovered && !style.isCartoon ? Color.black.opacity(0.15)
                                                        : (style.inkGlow ?? .clear), radius: 2, y: hovered ? 1 : 0)
             .shadow(color: hovered ? .clear : (style.inkGlow ?? .clear), radius: 5)
             .frame(width: compact ? 64 : 84)
             .position(labelPos)
         }
         .frame(width: M.size, height: M.size)
+        // 只有弹出的位移用弹簧
         .offset(x: pop * CGFloat(cos(rad)), y: pop * CGFloat(sin(rad)))
-        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: hovered)
+        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: pop)
+    }
+
+    /// 扇区本体：填充 + 同色粗描边做出的圆角，合成为一层
+    private func body(of shape: AnyShape, fill: AnyShapeStyle, even: FillStyle, inset: CGFloat) -> some View {
+        shape.fill(fill, style: even)
+            .overlay(shape.stroke(fill, style: StrokeStyle(lineWidth: inset * 2, lineJoin: .round)))
+            .compositingGroup()
     }
 }
 
